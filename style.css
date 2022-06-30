@@ -1,0 +1,21 @@
+* {
+    box-sizing: border-box;
+}
+
+display {
+    width: 600px;
+    height: 600px;
+    position: absolute;
+    border: solid black 1px;
+    overflow: hidden;
+}
+
+.player {
+    position: absolute;
+    background-color: black;
+}
+
+.enemy {
+    position: absolute;
+    border: solid black 1px;
+}
