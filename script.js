@@ -118,7 +118,7 @@ function getRandomPositionX(limit) {
 let spawnEnemies = setInterval(function () {
     let enemy = new Enemy(50, 50, 10, getRandomPositionX(600), 600);
     enemyArray.push(enemy);
-}, 3000);
+}, 500);
 
 
 let interval = setInterval(function () {
