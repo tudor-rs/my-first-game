@@ -44,6 +44,7 @@ document.body.addEventListener('keydown', (e) => {
 
         case "Escape":
             clearInterval(interval);
+            clearInterval((spawnEnemies));
             break;
     }
 });
@@ -127,13 +128,14 @@ let interval = setInterval(function () {
 
         if (checkCollision(enemyArray[i])) {
             clearInterval(interval);
+            clearInterval((spawnEnemies));
             console.log('--< GAME OVER >--');
         }
 
-        // if (enemyArray[i].getPositionY() < 0) {
-        //     enemyArray[i].removeFromScreen();
-        //     enemyArray.pop();
-        // }
+        else if (enemyArray[i].getPositionY() < 0 - enemyArray[i].height) {
+            enemyArray.splice(enemyArray[i], 1);
+            enemyArray[i].removeFromScreen();
+        }
 
         // MUST DELETE FROM DOM HIDDEN ENEMIES
     }
