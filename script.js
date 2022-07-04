@@ -1,6 +1,7 @@
 const display = document.querySelector('display');
 let enemyArray = [];
 let projectileArray = [];
+let animationFrameId;
 
 class Player {
     constructor(width, height, velocity, positionX, positionY) {
@@ -51,7 +52,7 @@ class Projectile {
 }
 
 function shoot() {
-    let projectile = new Projectile(10, 10, 5, player.positionX + player.width / 2, player.positionY);
+    let projectile = new Projectile(5, 5, 25, player.positionX + player.width / 2, player.height);
     projectile.launch();
 }
 
@@ -59,31 +60,22 @@ const player = new Player(50, 50, 50, display.clientWidth / 2, 0);
 const playerDiv = document.createElement('div');
 playerDiv.classList.add('player');
 
-function updatePlayerPosition() {
-    playerDiv.style.left = player.positionX + 'px';
-    playerDiv.style.bottom = player.positionY + 'px';
-}
-
 document.body.addEventListener('keydown', (e) => {
     switch (e.key) {
         case "ArrowLeft":
             player.positionX -= player.velocity;
-            updatePlayerPosition();
             break;
 
         case "ArrowUp":
             player.positionY += player.velocity;
-            updatePlayerPosition();
             break;
 
         case "ArrowRight":
             player.positionX += player.velocity;
-            updatePlayerPosition();
             break;
 
         case "ArrowDown":
             player.positionY -= player.velocity;
-            updatePlayerPosition();
             break;
 
         case " ":
@@ -91,17 +83,16 @@ document.body.addEventListener('keydown', (e) => {
             break;
 
         case "Escape":
-            clearInterval(game);
-            clearInterval((enemySpawnInterval));
+            cancelAnimationFrame(animationFrameId);
+            clearInterval(enemySpawnInterval);
             break;
     }
 });
 
 let enemySpawnInterval = setInterval(function () {
     let enemy = new Enemy(50, 50, 1, getRandomNumber(550), 550);
-    // let enemy = new Enemy(50, 50, 15, 600 / 2, 550);
     enemy.spawn();
-}, 500);
+}, 1000);
 
 function updateEnemyPositions() {
     for (let enemy of enemyArray) {
@@ -134,16 +125,14 @@ function draw() {
         display.appendChild(drawnEnemy);
     }
 
-    if (projectileArray.length > 0) {
-        for (let projectile of projectileArray) {
-            const projectileDiv = document.createElement('div');
-            projectileDiv.classList.add('projectile');
-            projectileDiv.style.left = `${projectile.positionX}px`;
-            projectileDiv.style.bottom = `${projectile.positionY}px`;
-            projectileDiv.style.width = `${projectile.width}px`;
-            projectileDiv.style.height = `${projectile.height}px`;
-            display.appendChild(projectileDiv);
-        }
+    for (let projectile of projectileArray) {
+        const projectileDiv = document.createElement('div');
+        projectileDiv.classList.add('projectile');
+        projectileDiv.style.left = `${projectile.positionX}px`;
+        projectileDiv.style.bottom = `${projectile.positionY}px`;
+        projectileDiv.style.width = `${projectile.width}px`;
+        projectileDiv.style.height = `${projectile.height}px`;
+        display.appendChild(projectileDiv);
     }
 
     playerDiv.style.width = player.width + 'px';
@@ -153,71 +142,50 @@ function draw() {
     display.appendChild(playerDiv);
 }
 
-let game = setInterval(function () {
-    
+function game() {
+    // for (let enemy of enemyArray) {
+    //     let collision = checkCollision(enemy);
+    //     if (collision) {
+    //         clearInterval(enemySpawnInterval);
+    //         cancelAnimationFrame(animationFrameId);
+    //         console.log('GAME OVER!');
+    //     }
+    // }
 
-    for (let enemy of enemyArray) {
-        let collision = checkCollision(enemy);
-        if (collision) {
-            clearInterval(enemySpawnInterval);
-            clearInterval(game);
-            console.log('GAME OVER!');
+    if (projectileArray.length > 0) {
+        for (let projectile of projectileArray) {
+            for (let enemy of enemyArray) {
+                if (checkCollision(enemy, projectile)) {
+                    enemy.despawn();
+                    projectile.purge();
+                }
+            }
         }
     }
 
     updateEnemyPositions();
-
-    
-
-    if (projectileArray.length > 0) {
-        for (let projectile of projectileArray) {
-            checkTargetHit(projectile);
-        }
-    }
-
     updateProjectilePositions();
-
     draw();
+    animationFrameId = requestAnimationFrame(game);
+}
+requestAnimationFrame(game);
 
-}, 1000 / 60);
-
-function checkCollision(enemy) {
+function checkCollision(firstObject, secondObject) {
     let x = false;
     let y = false;
 
-    if ((enemy.positionX <= player.positionX + player.width) &&
-        (enemy.positionX + enemy.width >= player.positionX)) {
+    if ((firstObject.positionX <= secondObject.positionX + secondObject.width) &&
+        (firstObject.positionX + firstObject.width >= secondObject.positionX)) {
         x = true;
     }
 
-    if ((enemy.positionY <= player.positionY + player.height) &&
-        (enemy.positionY + enemy.height >= player.positionY)) {
+    if ((firstObject.positionY <= secondObject.positionY + secondObject.height) &&
+        (firstObject.positionY + firstObject.height >= secondObject.positionY)) {
         y = true;
     }
 
     if (x && y) {
         return true;
-    }
-}
-
-function checkTargetHit(projectile) {
-    let x = false;
-    let y = false;
-
-    for (let enemy of enemyArray) {
-        if ((enemy.positionX <= projectile.positionX + projectile.width) &&
-            (enemy.positionX + enemy.width >= projectile.positionX)) {
-            x = true;
-        }
-
-        if ((enemy.positionY <= projectile.positionY + projectile.height) &&
-            (enemy.positionY + enemy.height >= projectile.positionY)) {
-            y = true;
-        }
-
-        if (x && y) {
-            enemy.despawn();
-        }
     }
 }
 
