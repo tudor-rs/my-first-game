@@ -56,12 +56,14 @@ function shoot() {
     projectile.launch();
 }
 
-const player = new Player(50, 50, 50, display.clientWidth / 2, 0);
+const player = new Player(50, 50, 10, display.clientWidth / 2, 0);
 const playerDiv = document.createElement('div');
 playerDiv.classList.add('player');
 
-document.body.addEventListener('keydown', (e) => {
-    switch (e.key) {
+let keyPressed;
+
+function checkUserInput() {
+    switch (keyPressed) {
         case "ArrowLeft":
             player.positionX -= player.velocity;
             break;
@@ -87,10 +89,67 @@ document.body.addEventListener('keydown', (e) => {
             clearInterval(enemySpawnInterval);
             break;
     }
-});
+}
+
+window.onkeydown = function (e) {
+    switch (e.key) {
+        case "ArrowLeft":
+            keyPressed = "ArrowLeft"; 
+            break;
+
+        case "ArrowUp":
+            keyPressed = 'ArrowUp';
+            break;
+
+        case "ArrowRight":
+            keyPressed = 'ArrowRight';
+            break;
+
+        case "ArrowDown":
+            keyPressed = 'ArrowDown';
+            break;
+
+        case " ":
+            shoot();
+            break;
+
+        case "Escape":
+            cancelAnimationFrame(animationFrameId);
+            clearInterval(enemySpawnInterval);
+            break;
+    }
+};
+
+window.onkeyup = function (e) {
+    switch (e.key) {
+        case "ArrowLeft":
+            keyPressed = '';
+            break;
+
+        case "ArrowUp":
+            keyPressed = '';
+            break;
+
+        case "ArrowRight":
+            keyPressed = '';
+            break;
+
+        case "ArrowDown":
+            keyPressed = '';
+            break;
+
+        case " ":
+            keyPressed = '';
+            break;
+
+        case "Escape":
+            keyPressed = '';
+            break;
+    }
+};
 
 let enemySpawnInterval = setInterval(function () {
-    let enemy = new Enemy(50, 50, 3, getRandomNumber(550), 550);
+    let enemy = new Enemy(50, 50, 1, getRandomNumber(550), 550);
     enemy.spawn();
 }, 1000);
 
@@ -145,6 +204,8 @@ function draw() {
 
 function game() {
     animationFrameId = requestAnimationFrame(game);
+
+    checkUserInput();
 
     for (let enemy of enemyArray) {
         if (checkCollision(enemy, player)) {
