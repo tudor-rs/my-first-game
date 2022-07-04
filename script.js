@@ -60,62 +60,60 @@ const player = new Player(50, 50, 10, display.clientWidth / 2, 0);
 const playerDiv = document.createElement('div');
 playerDiv.classList.add('player');
 
-let keyPressed;
+
+keyArray = [];
 
 function checkUserInput() {
-    switch (keyPressed) {
-        case "ArrowLeft":
-            player.positionX -= player.velocity;
-            break;
+    if (keyArray[0] == true) {
+        player.positionX -= player.velocity;
+    }
 
-        case "ArrowUp":
-            player.positionY += player.velocity;
-            break;
+    if (keyArray[1] == true) {
+        player.positionY += player.velocity;
+    }
 
-        case "ArrowRight":
-            player.positionX += player.velocity;
-            break;
+    if (keyArray[2] == true) {
+        player.positionX += player.velocity;
+    }
 
-        case "ArrowDown":
-            player.positionY -= player.velocity;
-            break;
+    if (keyArray[3] == true) {
+        player.positionY -= player.velocity;
+    }
 
-        case " ":
-            shoot();
-            break;
+    if (keyArray[4] == true) {
+        shoot();
+    }
 
-        case "Escape":
-            cancelAnimationFrame(animationFrameId);
-            clearInterval(enemySpawnInterval);
-            break;
+    if (keyArray[5] == true) {
+        cancelAnimationFrame(animationFrameId);
+        clearInterval(enemySpawnInterval);
     }
 }
 
 window.onkeydown = function (e) {
     switch (e.key) {
         case "ArrowLeft":
-            keyPressed = "ArrowLeft"; 
+            keyArray[0] = true;
             break;
 
         case "ArrowUp":
-            keyPressed = 'ArrowUp';
+            //keyArray[1] = true;
             break;
 
         case "ArrowRight":
-            keyPressed = 'ArrowRight';
+            keyArray[2] = true;
             break;
 
         case "ArrowDown":
-            keyPressed = 'ArrowDown';
+            //keyArray[3] = true;
             break;
 
         case " ":
-            shoot();
+            keyArray[4] = true;
             break;
 
         case "Escape":
-            cancelAnimationFrame(animationFrameId);
-            clearInterval(enemySpawnInterval);
+            keyArray[5] = true;
             break;
     }
 };
@@ -123,27 +121,27 @@ window.onkeydown = function (e) {
 window.onkeyup = function (e) {
     switch (e.key) {
         case "ArrowLeft":
-            keyPressed = '';
+            keyArray[0] = false;
             break;
 
         case "ArrowUp":
-            keyPressed = '';
+            keyArray[1] = false;
             break;
 
         case "ArrowRight":
-            keyPressed = '';
+            keyArray[2] = false;
             break;
 
         case "ArrowDown":
-            keyPressed = '';
+            keyArray[3] = false;
             break;
 
         case " ":
-            keyPressed = '';
+            keyArray[4] = false;
             break;
 
         case "Escape":
-            keyPressed = '';
+            keyArray[5] = false;
             break;
     }
 };
