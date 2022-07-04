@@ -2,6 +2,15 @@ const display = document.querySelector('display');
 let enemyArray = [];
 let projectileArray = [];
 let animationFrameId;
+let gameWidth = 600;
+let gameHeight = 600;
+
+let score = 0;
+let scoreDisplay = document.createElement('div');
+scoreDisplay.classList.add('score');
+scoreDisplay.style.left = `${gameWidth - 100}px`;
+scoreDisplay.style.bottom = `${gameHeight - 50}px`;
+
 
 class Player {
     constructor(width, height, velocity, positionX, positionY) {
@@ -51,15 +60,60 @@ class Projectile {
     }
 }
 
-function shoot() {
-    let projectile = new Projectile(5, 5, 25, player.positionX + player.width / 2, player.height);
-    projectile.launch();
+let starArray = [];
+
+class Star {
+    constructor(width, height, velocity, positionX, positionY) {
+        this.width = width;
+        this.height = height;
+        this.velocity = velocity;
+        this.positionX = positionX;
+        this.positionY = positionY;
+
+        this.spawn = function () {
+            starArray.push(this);
+        }
+
+        this.despawn = function () {
+            let index = starArray.indexOf(this);
+            starArray.splice(index, 1);
+        }
+    }
 }
 
-const player = new Player(50, 50, 10, display.clientWidth / 2, 0);
+let starfallInterval = window.setInterval(function () {
+    let star = new Star(1, 1, 25, getRandomNumber(550), 550);
+    star.spawn();
+}, 100);
+
+function starFall() {
+    for (let star of starArray) {
+        if (star.positionY < 0) {
+            star.despawn();
+        }
+
+        else {
+            star.positionY = star.positionY - star.velocity;
+        }
+    }
+}
+
+let cooldown = false;
+
+function shoot() {
+    if (cooldown == false) {
+        let projectile = new Projectile(5, 5, 25, player.positionX + player.width / 2, player.positionY);
+        projectile.launch();
+        let audio = new Audio('./sounds/laser.wav');
+        audio.play();
+        cooldown = true;
+        setTimeout(() => cooldown = false, 200);
+    }
+}
+
+const player = new Player(50, 77.5, 10, display.clientWidth / 2, 0);
 const playerDiv = document.createElement('div');
 playerDiv.classList.add('player');
-
 
 keyArray = [];
 
@@ -97,7 +151,7 @@ window.onkeydown = function (e) {
             break;
 
         case "ArrowUp":
-            //keyArray[1] = true;
+            keyArray[1] = true;
             break;
 
         case "ArrowRight":
@@ -105,7 +159,7 @@ window.onkeydown = function (e) {
             break;
 
         case "ArrowDown":
-            //keyArray[3] = true;
+            keyArray[3] = true;
             break;
 
         case " ":
@@ -198,6 +252,19 @@ function draw() {
     playerDiv.style.left = player.positionX + 'px';
     playerDiv.style.bottom = player.positionY + 'px';
     display.appendChild(playerDiv);
+
+    for (let star of starArray) {
+        const starDiv = document.createElement('div');
+        starDiv.classList.add('star');
+        starDiv.style.left = `${star.positionX}px`;
+        starDiv.style.bottom = `${star.positionY}px`;
+        starDiv.style.width = `${star.width}px`;
+        starDiv.style.height = `${star.height}px`;
+        display.appendChild(starDiv);
+    }
+
+    scoreDisplay.innerText = score;
+    display.appendChild(scoreDisplay);
 }
 
 function game() {
@@ -219,13 +286,16 @@ function game() {
                 if (checkCollision(enemy, projectile)) {
                     enemy.despawn();
                     projectile.purge();
+                    score++;
                 }
             }
         }
     }
 
+    checkPlayerBoundaries();
     updateEnemyPositions();
     updateProjectilePositions();
+    starFall();
     draw();
 }
 requestAnimationFrame(game);
@@ -233,6 +303,7 @@ requestAnimationFrame(game);
 function stopGame() {
     cancelAnimationFrame(animationFrameId);
     clearInterval(enemySpawnInterval);
+    clearInterval(starfallInterval);
 }
 
 function checkCollision(firstObject, secondObject) {
@@ -254,6 +325,30 @@ function checkCollision(firstObject, secondObject) {
     }
 }
 
+function checkPlayerBoundaries() {
+    if (player.positionX + player.width >= gameWidth) {
+        player.positionX = gameWidth - player.width;
+    }
+
+    else if (player.positionX < 0) {
+        player.positionX = 0;
+    }
+
+    if (player.positionY + player.height >= gameHeight) {
+        player.positionY = gameHeight - player.height;
+    }
+
+    else if (player.positionY < 0) {
+        player.positionY = 0;
+    }
+}
+
 function getRandomNumber(max) {
     return Math.floor(Math.random() * max);
 }
+
+// todo
+// add enemy images
+// laser sound doesn't play always according to what's on screen
+// despaghettify the code
+// add menu, game over screen
