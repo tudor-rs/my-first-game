@@ -90,7 +90,7 @@ document.body.addEventListener('keydown', (e) => {
 });
 
 let enemySpawnInterval = setInterval(function () {
-    let enemy = new Enemy(50, 50, 1, getRandomNumber(550), 550);
+    let enemy = new Enemy(50, 50, 3, getRandomNumber(550), 550);
     enemy.spawn();
 }, 1000);
 
@@ -99,6 +99,7 @@ function updateEnemyPositions() {
         enemy.positionY = enemy.positionY - enemy.velocity;
         if (enemy.positionY < 0) {
             enemy.despawn();
+            stopGame();
         }
     }
 }
@@ -143,14 +144,15 @@ function draw() {
 }
 
 function game() {
-    // for (let enemy of enemyArray) {
-    //     let collision = checkCollision(enemy);
-    //     if (collision) {
-    //         clearInterval(enemySpawnInterval);
-    //         cancelAnimationFrame(animationFrameId);
-    //         console.log('GAME OVER!');
-    //     }
-    // }
+    animationFrameId = requestAnimationFrame(game);
+
+    for (let enemy of enemyArray) {
+        if (checkCollision(enemy, player)) {
+            clearInterval(enemySpawnInterval);
+            cancelAnimationFrame(animationFrameId);
+            console.log('GAME OVER!');
+        }
+    }
 
     if (projectileArray.length > 0) {
         for (let projectile of projectileArray) {
@@ -166,9 +168,13 @@ function game() {
     updateEnemyPositions();
     updateProjectilePositions();
     draw();
-    animationFrameId = requestAnimationFrame(game);
 }
 requestAnimationFrame(game);
+
+function stopGame() {
+    cancelAnimationFrame(animationFrameId);
+    clearInterval(enemySpawnInterval);
+}
 
 function checkCollision(firstObject, secondObject) {
     let x = false;
