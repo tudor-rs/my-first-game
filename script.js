@@ -1,7 +1,4 @@
 const display = document.querySelector('display');
-let enemyArray = [];
-let projectileArray = [];
-let animationFrameId;
 let gameWidth = 600;
 let gameHeight = 600;
 
@@ -10,7 +7,6 @@ let scoreDisplay = document.createElement('div');
 scoreDisplay.classList.add('score');
 scoreDisplay.style.left = `${gameWidth - 100}px`;
 scoreDisplay.style.bottom = `${gameHeight - 50}px`;
-
 
 class Player {
     constructor(width, height, velocity, positionX, positionY) {
@@ -60,8 +56,6 @@ class Projectile {
     }
 }
 
-let starArray = [];
-
 class Star {
     constructor(width, height, velocity, positionX, positionY) {
         this.width = width;
@@ -81,35 +75,7 @@ class Star {
     }
 }
 
-let starfallInterval = window.setInterval(function () {
-    let star = new Star(1, 1, 25, getRandomNumber(550), 550);
-    star.spawn();
-}, 100);
-
-function starFall() {
-    for (let star of starArray) {
-        if (star.positionY < 0) {
-            star.despawn();
-        }
-
-        else {
-            star.positionY = star.positionY - star.velocity;
-        }
-    }
-}
-
-let cooldown = false;
-
-function shoot() {
-    if (cooldown == false) {
-        let projectile = new Projectile(5, 5, 25, player.positionX + player.width / 2, player.positionY);
-        projectile.launch();
-        let audio = new Audio('./sounds/laser.wav');
-        audio.play();
-        cooldown = true;
-        setTimeout(() => cooldown = false, 200);
-    }
-}
+// player
 
 const player = new Player(50, 77.5, 10, display.clientWidth / 2, 0);
 const playerDiv = document.createElement('div');
@@ -200,6 +166,53 @@ window.onkeyup = function (e) {
     }
 };
 
+function checkPlayerBoundaries() {
+    if (player.positionX + player.width >= gameWidth) {
+        player.positionX = gameWidth - player.width;
+    }
+
+    else if (player.positionX < 0) {
+        player.positionX = 0;
+    }
+
+    if (player.positionY + player.height >= gameHeight) {
+        player.positionY = gameHeight - player.height;
+    }
+
+    else if (player.positionY < 0) {
+        player.positionY = 0;
+    }
+}
+
+// projectile
+
+let projectileArray = [];
+let cooldown = false;
+
+function shoot() {
+    if (cooldown == false) {
+        let projectile = new Projectile(5, 5, 25, player.positionX + player.width / 2, player.positionY);
+        projectile.launch();
+        let audio = new Audio('./sounds/laser.wav');
+        audio.play();
+        cooldown = true;
+        setTimeout(() => cooldown = false, 200);
+    }
+}
+
+function updateProjectilePositions() {
+    for (let projectile of projectileArray) {
+        projectile.positionY = projectile.positionY + projectile.velocity;
+        if (projectile.positionY > 600) {
+            projectile.purge();
+        }
+    }
+}
+
+// enemy
+
+let enemyArray = [];
+
 let enemySpawnInterval = setInterval(function () {
     let enemy = new Enemy(50, 50, 1, getRandomNumber(550), 550);
     enemy.spawn();
@@ -215,13 +228,68 @@ function updateEnemyPositions() {
     }
 }
 
-function updateProjectilePositions() {
-    for (let projectile of projectileArray) {
-        projectile.positionY = projectile.positionY + projectile.velocity;
-        if (projectile.positionY > 600) {
-            projectile.purge();
+// starfall
+
+let starArray = [];
+
+let starfallInterval = window.setInterval(function () {
+    let star = new Star(1, 1, 25, getRandomNumber(550), 550);
+    star.spawn();
+}, 100);
+
+function starFall() {
+    for (let star of starArray) {
+        if (star.positionY < 0) {
+            star.despawn();
+        }
+
+        else {
+            star.positionY = star.positionY - star.velocity;
         }
     }
+}
+
+// game
+
+let animationFrameId;
+
+function game() {
+    animationFrameId = requestAnimationFrame(game);
+
+    checkUserInput();
+
+    for (let enemy of enemyArray) {
+        if (checkCollision(enemy, player)) {
+            clearInterval(enemySpawnInterval);
+            cancelAnimationFrame(animationFrameId);
+            console.log('GAME OVER!');
+        }
+    }
+
+    if (projectileArray.length > 0) {
+        for (let projectile of projectileArray) {
+            for (let enemy of enemyArray) {
+                if (checkCollision(enemy, projectile)) {
+                    enemy.despawn();
+                    projectile.purge();
+                    score++;
+                }
+            }
+        }
+    }
+
+    checkPlayerBoundaries();
+    updateEnemyPositions();
+    updateProjectilePositions();
+    starFall();
+    draw();
+}
+requestAnimationFrame(game);
+
+function stopGame() {
+    cancelAnimationFrame(animationFrameId);
+    clearInterval(enemySpawnInterval);
+    clearInterval(starfallInterval);
 }
 
 function draw() {
@@ -267,44 +335,7 @@ function draw() {
     display.appendChild(scoreDisplay);
 }
 
-function game() {
-    animationFrameId = requestAnimationFrame(game);
-
-    checkUserInput();
-
-    for (let enemy of enemyArray) {
-        if (checkCollision(enemy, player)) {
-            clearInterval(enemySpawnInterval);
-            cancelAnimationFrame(animationFrameId);
-            console.log('GAME OVER!');
-        }
-    }
-
-    if (projectileArray.length > 0) {
-        for (let projectile of projectileArray) {
-            for (let enemy of enemyArray) {
-                if (checkCollision(enemy, projectile)) {
-                    enemy.despawn();
-                    projectile.purge();
-                    score++;
-                }
-            }
-        }
-    }
-
-    checkPlayerBoundaries();
-    updateEnemyPositions();
-    updateProjectilePositions();
-    starFall();
-    draw();
-}
-requestAnimationFrame(game);
-
-function stopGame() {
-    cancelAnimationFrame(animationFrameId);
-    clearInterval(enemySpawnInterval);
-    clearInterval(starfallInterval);
-}
+// utility
 
 function checkCollision(firstObject, secondObject) {
     let x = false;
@@ -322,24 +353,6 @@ function checkCollision(firstObject, secondObject) {
 
     if (x && y) {
         return true;
-    }
-}
-
-function checkPlayerBoundaries() {
-    if (player.positionX + player.width >= gameWidth) {
-        player.positionX = gameWidth - player.width;
-    }
-
-    else if (player.positionX < 0) {
-        player.positionX = 0;
-    }
-
-    if (player.positionY + player.height >= gameHeight) {
-        player.positionY = gameHeight - player.height;
-    }
-
-    else if (player.positionY < 0) {
-        player.positionY = 0;
     }
 }
 
