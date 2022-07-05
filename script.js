@@ -19,12 +19,13 @@ class Player {
 }
 
 class Enemy {
-    constructor(width, height, velocity, positionX, positionY) {
+    constructor(width, height, velocity, positionX, positionY, rotation) {
         this.width = width;
         this.height = height;
         this.velocity = velocity;
         this.positionX = positionX;
         this.positionY = positionY;
+        this.rotation = rotation;
 
         this.spawn = function () {
             enemyArray.push(this);
@@ -77,11 +78,11 @@ class Star {
 
 // player
 
-const player = new Player(50, 77.5, 10, display.clientWidth / 2, 0);
+const player = new Player(60, 50, 10, display.clientWidth / 2, 0);
 const playerDiv = document.createElement('div');
 playerDiv.classList.add('player');
 
-keyArray = [];
+let keyArray = [];
 
 function checkUserInput() {
     if (keyArray[0] == true) {
@@ -214,7 +215,7 @@ function updateProjectilePositions() {
 let enemyArray = [];
 
 let enemySpawnInterval = setInterval(function () {
-    let enemy = new Enemy(50, 50, 1, getRandomNumber(550), 550);
+    let enemy = new Enemy(50, 40, 1, getRandomNumber(550), 550, getRandomNumber(360));
     enemy.spawn();
 }, 1000);
 
@@ -302,6 +303,7 @@ function draw() {
         drawnEnemy.style.bottom = `${enemy.positionY}px`;
         drawnEnemy.style.width = `${enemy.width}px`;
         drawnEnemy.style.height = `${enemy.height}px`;
+        drawnEnemy.style.rotate = `${enemy.rotation}deg`;
         display.appendChild(drawnEnemy);
     }
 

@@ -22,12 +22,16 @@ display {
     position: absolute;
     background-image: url(./images/spaceship.png);
     max-width: 100%;
-    background-size: cover;
+    background-size: contain;
+    background-repeat: no-repeat;
 }
 
 .enemy {
     position: absolute;
-    border: solid white 1px;
+    background-image: url(./images/meteor1.png);
+    max-width: 100%;
+    background-size: contain;
+    background-repeat: no-repeat;
 }
 
 .projectile {
